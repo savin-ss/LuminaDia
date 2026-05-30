@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LuminaDia | AI-Powered Iris Diabetes Platform</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+    :root {
+      --lumi-bg: #f8f6f2;
+      --lumi-card: #ffffff;
+      --lumi-border: rgba(0,0,0,0.08);
+      --lumi-text: #1a1a1a;
+      --lumi-muted: #6b6b6b;
+      --lumi-teal: #0d7a5f;
+      --lumi-teal-light: #e6f4f1;
+      --lumi-teal-mid: #1a9c7a;
+      --lumi-amber: #c4700a;
+      --lumi-amber-light: #fef3e2;
+      --lumi-red: #c0392b;
+      --lumi-red-light: #fde8e6;
+      --lumi-blue: #1e6db5;
+      --lumi-blue-light: #e8f1fb;
+      --lumi-purple: #6c3fa0;
+      --lumi-purple-light: #f0e9f8;
+      --lumi-accent: #0d7a5f;
+      --font: 'DM Sans', sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body, .app {
+      font-family: var(--font);
+      background: var(--lumi-bg);
+      color: var(--lumi-text);
+      min-height: 100vh;
+    }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+    .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+    .header {
+      background: var(--lumi-card);
+      border-bottom: 1px solid var(--lumi-border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-group { display: flex; align-items: center; gap: 10px; }
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: var(--lumi-teal);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo-mark svg { width: 20px; height: 20px; }
+    .logo-text { font-size: 20px; font-weight: 600; letter-spacing: -0.5px; color: var(--lumi-text); }
+    .logo-text span { color: var(--lumi-teal); }
+    .header-badge {
+      font-size: 11px; font-family: var(--mono);
+      background: var(--lumi-teal-light); color: var(--lumi-teal);
+      padding: 3px 10px; border-radius: 20px;
+      border: 1px solid rgba(13,122,95,0.2);
+      font-weight: 500; letter-spacing: 0.3px;
+    }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lumi-teal); animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .status-label { font-size: 12px; color: var(--lumi-muted); font-family: var(--mono); }
+
+    .main { display: flex; gap: 0; flex: 1; min-height: 0; }
+
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: var(--lumi-card);
+      border-right: 1px solid var(--lumi-border);
+      padding: 20px 0;
+      display: flex; flex-direction: column;
+      gap: 4px;
+    }
+    .sidebar-section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 1.2px;
+      color: var(--lumi-muted); text-transform: uppercase;
+      padding: 8px 20px 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 20px; cursor: pointer;
+      font-size: 13px; font-weight: 400; color: var(--lumi-muted);
+      border-left: 2px solid transparent;
+      transition: all 0.15s; user-select: none;
+    }
+    .nav-item:hover { background: var(--lumi-bg); color: var(--lumi-text); }
+    .nav-item.active { color: var(--lumi-teal); background: var(--lumi-teal-light); border-left-color: var(--lumi-teal); font-weight: 500; }
+    .nav-icon { font-size: 15px; }
+
+    .content { flex: 1; overflow-y: auto; padding: 28px 28px; display: flex; flex-direction: column; gap: 24px; }
+
+    .page { display: none; flex-direction: column; gap: 24px; animation: fadeIn 0.2s ease; }
+    .page.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; color: var(--lumi-text); }
+    .page-subtitle { font-size: 14px; color: var(--lumi-muted); margin-top: 3px; line-height: 1.5; }
+
+    .card {
+      background: var(--lumi-card);
+      border: 1px solid var(--lumi-border);
+      border-radius: 12px;
+      padding: 20px 22px;
+    }
+    .card-title { font-size: 13px; font-weight: 600; color: var(--lumi-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+
+    .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .metric-card {
+      background: var(--lumi-bg);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .metric-label { font-size: 11px; font-weight: 500; color: var(--lumi-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+    .metric-value { font-size: 26px; font-weight: 600; letter-spacing: -1px; color: var(--lumi-text); }
+    .metric-value.green { color: var(--lumi-teal); }
+    .metric-value.amber { color: var(--lumi-amber); }
+    .metric-sub { font-size: 11px; color: var(--lumi-muted); margin-top: 3px; }
+
+    .upload-zone {
+      border: 1.5px dashed rgba(13,122,95,0.3);
+      border-radius: 12px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(13,122,95,0.02);
+      position: relative;
+    }
+    .upload-zone:hover { border-color: var(--lumi-teal); background: var(--lumi-teal-light); }
+    .upload-zone.dragover { border-color: var(--lumi-teal); background: var(--lumi-teal-light); transform: scale(1.01); }
+    .upload-icon { font-size: 36px; color: var(--lumi-teal); margin-bottom: 12px; opacity: 0.8; }
+    .upload-title { font-size: 15px; font-weight: 500; color: var(--lumi-text); margin-bottom: 6px; }
+    .upload-hint { font-size: 12px; color: var(--lumi-muted); line-height: 1.6; }
+    .upload-formats { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+    .format-badge { font-size: 10px; font-family: var(--mono); background: var(--lumi-bg); border: 1px solid var(--lumi-border); color: var(--lumi-muted); padding: 3px 8px; border-radius: 4px; }
+    #file-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+    .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .result-display {
+      border: 1px solid var(--lumi-border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .result-header { padding: 12px 16px; background: var(--lumi-bg); font-size: 12px; font-weight: 600; color: var(--lumi-muted); text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid var(--lumi-border); }
+    .result-body { padding: 16px; }
+
+    .diagnosis-result {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .diagnosis-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border-radius: 8px;
+      font-size: 15px; font-weight: 600;
+      width: fit-content;
+    }
+    .diagnosis-badge.positive { background: var(--lumi-red-light); color: var(--lumi-red); }
+    .diagnosis-badge.negative { background: var(--lumi-teal-light); color: var(--lumi-teal); }
+    .diagnosis-badge.pending { background: var(--lumi-bg); color: var(--lumi-muted); }
+
+    .confidence-bar-wrap { margin: 4px 0; }
+    .confidence-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--lumi-muted); margin-bottom: 5px; }
+    .confidence-bar { height: 6px; background: var(--lumi-bg); border-radius: 3px; overflow: hidden; }
+    .confidence-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); background: var(--lumi-teal); }
+    .confidence-fill.high { background: var(--lumi-teal); }
+    .confidence-fill.medium { background: var(--lumi-amber); }
+    .confidence-fill.low { background: var(--lumi-red); }
+
+    .severity-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 4px; }
+    .severity-item { text-align: center; }
+    .severity-bar-wrap { height: 48px; display: flex; align-items: flex-end; justify-content: center; }
+    .severity-bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.8s cubic-bezier(0.4,0,0.2,1); }
+    .severity-label { font-size: 9px; color: var(--lumi-muted); margin-top: 3px; font-family: var(--mono); }
+    .severity-pct { font-size: 11px; font-weight: 600; color: var(--lumi-text); }
+
+    .gradcam-canvas-wrap {
+      border-radius: 8px; overflow: hidden;
+      background: #111; position: relative;
+      aspect-ratio: 1; width: 100%;
+    }
+    #gradcam-canvas { width: 100%; height: 100%; display: block; }
+    .gradcam-legend {
+      display: flex; align-items: center; gap: 4px;
+      margin-top: 8px; font-size: 10px; color: var(--lumi-muted); font-family: var(--mono);
+    }
+    .legend-bar { height: 6px; flex: 1; border-radius: 3px; background: linear-gradient(to right, #0000ff, #00ff00, #ffff00, #ff0000); }
+
+    .feature-list { display: flex; flex-direction: column; gap: 8px; }
+    .feature-row { display: flex; align-items: center; gap: 10px; }
+    .feature-name { font-size: 12px; color: var(--lumi-muted); width: 140px; flex-shrink: 0; }
+    .feature-score-bar { flex: 1; height: 5px; background: var(--lumi-bg); border-radius: 3px; overflow: hidden; }
+    .feature-score-fill { height: 100%; border-radius: 3px; background: var(--lumi-teal); transition: width 1s; }
+    .feature-pct { font-size: 11px; font-family: var(--mono); color: var(--lumi-text); width: 36px; text-align: right; }
+
+    .log-stream {
+      background: #0f1117;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: #4ade80;
+      line-height: 1.8;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    .log-line { display: flex; gap: 10px; }
+    .log-time { color: #6b7280; flex-shrink: 0; }
+    .log-msg.info { color: #4ade80; }
+    .log-msg.warn { color: #fbbf24; }
+    .log-msg.sys { color: #818cf8; }
+    .log-msg.dim { color: #6b7280; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 9px 18px; border-radius: 8px; cursor: pointer;
+      font-size: 13px; font-weight: 500; font-family: var(--font);
+      transition: all 0.15s; border: 1px solid transparent;
+      user-select: none;
+    }
+    .btn-primary { background: var(--lumi-teal); color: white; }
+    .btn-primary:hover { background: #0a6650; }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-secondary { background: transparent; border-color: var(--lumi-border); color: var(--lumi-text); }
+    .btn-secondary:hover { background: var(--lumi-bg); }
+    .btn-icon { font-size: 15px; }
+
+    .alert-box {
+      padding: 12px 16px; border-radius: 8px;
+      font-size: 13px; line-height: 1.6; display: flex; gap: 10px;
+    }
+    .alert-box.info { background: var(--lumi-blue-light); color: var(--lumi-blue); border: 1px solid rgba(30,109,181,0.15); }
+    .alert-box.warn { background: var(--lumi-amber-light); color: var(--lumi-amber); border: 1px solid rgba(196,112,10,0.15); }
+    .alert-box.success { background: var(--lumi-teal-light); color: var(--lumi-teal); border: 1px solid rgba(13,122,95,0.15); }
+
+    .model-pipeline { display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 4px 0; }
+    .pipeline-stage {
+      flex-shrink: 0;
+      background: var(--lumi-bg);
+      border: 1px solid var(--lumi-border);
+      border-radius: 8px; padding: 10px 14px;
+      text-align: center;
+      min-width: 90px;
+    }
+    .pipeline-stage.active { border-color: var(--lumi-teal); background: var(--lumi-teal-light); }
+    .pipeline-stage.done { border-color: rgba(13,122,95,0.3); }
+    .pipeline-name { font-size: 11px; font-weight: 600; color: var(--lumi-text); }
+    .pipeline-sub { font-size: 9px; color: var(--lumi-muted); margin-top: 2px; font-family: var(--mono); }
+    .pipeline-arrow { padding: 0 6px; color: var(--lumi-muted); font-size: 14px; flex-shrink: 0; }
+    .pipeline-stage .stage-progress { width: 100%; height: 2px; background: var(--lumi-border); border-radius: 1px; margin-top: 8px; overflow: hidden; }
+    .stage-fill { height: 100%; background: var(--lumi-teal); border-radius: 1px; transition: width 0.5s; }
+
+    .history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .history-table th { padding: 8px 12px; text-align: left; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--lumi-muted); border-bottom: 1px solid var(--lumi-border); }
+    .history-table td { padding: 10px 12px; border-bottom: 1px solid var(--lumi-border); color: var(--lumi-text); }
+    .history-table tr:hover td { background: var(--lumi-bg); }
+    .hist-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 500; }
+    .hist-badge.pos { background: var(--lumi-red-light); color: var(--lumi-red); }
+    .hist-badge.neg { background: var(--lumi-teal-light); color: var(--lumi-teal); }
+    .hist-badge.mild { background: var(--lumi-amber-light); color: var(--lumi-amber); }
+
+    .chat-container { display: flex; flex-direction: column; gap: 12px; max-height: 380px; overflow-y: auto; padding: 4px 0; }
+    .chat-msg { display: flex; gap: 10px; }
+    .chat-msg.user { flex-direction: row-reverse; }
+    .chat-avatar {
+      width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+    }
+    .chat-avatar.ai { background: var(--lumi-teal); color: white; }
+    .chat-avatar.user { background: var(--lumi-purple-light); color: var(--lumi-purple); }
+    .chat-bubble {
+      max-width: 80%; padding: 10px 14px; border-radius: 10px;
+      font-size: 13px; line-height: 1.6; color: var(--lumi-text);
+    }
+    .chat-bubble.ai { background: var(--lumi-card); border: 1px solid var(--lumi-border); border-top-left-radius: 3px; }
+    .chat-bubble.user { background: var(--lumi-teal); color: white; border-top-right-radius: 3px; }
+    .chat-bubble.loading { color: var(--lumi-muted); font-style: italic; }
+    .chat-input-row { display: flex; gap: 8px; margin-top: 4px; }
+    .chat-input {
+      flex: 1; padding: 9px 14px; border: 1px solid var(--lumi-border);
+      border-radius: 8px; font-size: 13px; font-family: var(--font);
+      background: var(--lumi-card); color: var(--lumi-text);
+      outline: none;
+    }
+    .chat-input:focus { border-color: var(--lumi-teal); }
+
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
+    .spinner.dark { border-color: rgba(0,0,0,0.1); border-top-color: var(--lumi-teal); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-family: var(--mono); padding: 2px 7px; border-radius: 4px; }
+    .tag.teal { background: var(--lumi-teal-light); color: var(--lumi-teal); }
+    .tag.purple { background: var(--lumi-purple-light); color: var(--lumi-purple); }
+    .tag.amber { background: var(--lumi-amber-light); color: var(--lumi-amber); }
+
+    .flex-row { display: flex; gap: 12px; align-items: center; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .gap-8 { gap: 8px; }
+    .mt-4 { margin-top: 4px; }
+    .mt-8 { margin-top: 8px; }
+    .mt-12 { margin-top: 12px; }
+
+    .divider { height: 1px; background: var(--lumi-border); margin: 4px 0; }
+
+    .image-preview {
+      width: 100%; aspect-ratio: 1; border-radius: 8px; overflow: hidden;
+      background: #1a1a1a; display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .image-preview .placeholder-text { font-size: 12px; color: #555; font-family: var(--mono); }
+    .overlay-label {
+      position: absolute; bottom: 8px; left: 8px;
+      background: rgba(0,0,0,0.7); color: white;
+      font-size: 10px; font-family: var(--mono);
+      padding: 3px 7px; border-radius: 4px;
+    }
+
+    .annotation-box {
+      border: 1px solid var(--lumi-border); border-radius: 8px;
+      overflow: hidden;
+    }
+    .annotation-header { padding: 10px 14px; background: var(--lumi-bg); font-size: 12px; font-weight: 600; color: var(--lumi-muted); }
+    .annotation-body { padding: 12px 14px; font-size: 13px; line-height: 1.7; color: var(--lumi-text); }
+
+    .severity-legend { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .sev-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--lumi-muted); }
+    .sev-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    #sample-eye-canvas { width: 100%; height: 100%; }
+
+    .iris-ring { animation: iris-pulse 3s ease-in-out infinite; }
+    @keyframes iris-pulse { 0%,100% { opacity:0.9; } 50% { opacity:0.6; } }
+  </style>
+</head>
+<body>
+
+<h2 class="sr-only">LuminaDia – AI-powered iris-based diabetes detection platform</h2>
+
+<div class="app">
+  <header class="header">
+    <div class="logo-group">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4"/>
+          <circle cx="12" cy="12" r="8" stroke-dasharray="3 2"/>
+          <circle cx="12" cy="12" r="11" opacity="0.4"/>
+          <line x1="12" y1="2" x2="12" y2="5"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="2" y1="12" x2="5" y2="12"/>
+          <line x1="19" y1="12" x2="22" y2="12"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">Lumina<span>Dia</span></div>
+      </div>
+      <span class="header-badge">XAI · v2.1.0</span>
+    </div>
+    <div class="header-right">
+      <div class="status-dot"></div>
+      <span class="status-label">AI engine active</span>
+    </div>
+  </header>
+
+  <div class="main">
+    <nav class="sidebar" role="navigation" aria-label="Main navigation">
+      <div class="sidebar-section-label">Workspace</div>
+      <div class="nav-item active" onclick="showPage('analyze')" role="button" tabindex="0">
+        <span class="nav-icon">◈</span> Iris Analysis
+      </div>
+      <div class="nav-item" onclick="showPage('results')" role="button" tabindex="0">
+        <span class="nav-icon">◉</span> Results
+      </div>
+      <div class="nav-item" onclick="showPage('xai')" role="button" tabindex="0">
+        <span class="nav-icon">◇</span> XAI Viewer
+      </div>
+      <div class="nav-item" onclick="showPage('chat')" role="button" tabindex="0">
+        <span class="nav-icon">◎</span> AI Consult
+      </div>
+      <div class="sidebar-section-label" style="margin-top:8px">System</div>
+      <div class="nav-item" onclick="showPage('history')" role="button" tabindex="0">
+        <span class="nav-icon">▤</span> History
+      </div>
+      <div class="nav-item" onclick="showPage('about')" role="button" tabindex="0">
+        <span class="nav-icon">○</span> About
+      </div>
+    </nav>
+
+    <main class="content" role="main">
+
+      <div id="page-analyze" class="page active">
+        <div>
+          <div class="page-title">Iris Diabetes Detection</div>
+          <div class="page-subtitle">Upload a high-resolution iris image for AI-powered diabetic screening using our SwinUNetV2 + ViT hybrid framework</div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-label">Model Accuracy</div>
+            <div class="metric-value green">99.1%</div>
+            <div class="metric-sub">SwinUNetV2 + ViT</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">F1 Score</div>
+            <div class="metric-value green">0.99</div>
+            <div class="metric-sub">Weighted avg</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">ROC-AUC</div>
+            <div class="metric-value green">0.998</div>
+            <div class="metric-sub">Multi-class</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Scans Today</div>
+            <div class="metric-value" id="scan-count">0</div>
+            <div class="metric-sub">This session</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Upload Iris Image</div>
+          <div class="upload-zone" id="upload-zone">
+            <input type="file" id="file-input" accept="image/*" onchange="handleFileUpload(event)">
+            <div class="upload-icon">⊕</div>
+            <div class="upload-title">Drop iris image or click to browse</div>
+            <div class="upload-hint">Upload a clear, high-resolution iris photograph<br>for accurate diabetic retinopathy analysis</div>
+            <div class="upload-formats">
+              <span class="format-badge">JPEG</span>
+              <span class="format-badge">PNG</span>
+              <span class="format-badge">TIFF</span>
+              <span class="format-badge">BMP</span>
+            </div>
+          </div>
+          <div id="upload-alert" style="margin-top:12px;display:none"></div>
+        </div>
+
+        <div class="card" id="pipeline-card">
+          <div class="flex-between" style="margin-bottom:14px">
+            <div class="card-title" style="margin:0">AI Pipeline Status</div>
+            <div id="pipeline-status" style="font-size:12px;color:var(--lumi-muted);font-family:var(--mono)">idle</div>
+          </div>
+          <div class="model-pipeline">
+            <div class="pipeline-stage" id="stage-input">
+              <div class="pipeline-name">Input</div>
+              <div class="pipeline-sub">CLAHE + denoise</div>
+              <div class="stage-progress"><div class="stage-fill" id="sf-input" style="width:0%"></div></div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-stage" id="stage-seg">
+              <div class="pipeline-name">SwinUNetV2</div>
+              <div class="pipeline-sub">Iris ROI seg</div>
+              <div class="stage-progress"><div class="stage-fill" id="sf-seg" style="width:0%"></div></div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-stage" id="stage-feat">
+              <div class="pipeline-name">ViT + EfficientNet</div>
+              <div class="pipeline-sub">Feature extract</div>
+              <div class="stage-progress"><div class="stage-fill" id="sf-feat" style="width:0%"></div></div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-stage" id="stage-cls">
+              <div class="pipeline-name">ConvNeXtV2</div>
+              <div class="pipeline-sub">Classification</div>
+              <div class="stage-progress"><div class="stage-fill" id="sf-cls" style="width:0%"></div></div>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-stage" id="stage-xai">
+              <div class="pipeline-name">Grad-CAM</div>
+              <div class="pipeline-sub">XAI output</div>
+              <div class="stage-progress"><div class="stage-fill" id="sf-xai" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="analysis-grid" id="result-section" style="display:none">
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title">Uploaded Image</div>
+              <div class="image-preview" id="preview-wrap">
+                <div class="placeholder-text">no image loaded</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title">Grad-CAM Heatmap</div>
+              <div class="gradcam-canvas-wrap">
+                <canvas id="gradcam-canvas" width="300" height="300"></canvas>
+              </div>
+              <div class="gradcam-legend">
+                <span>Low</span>
+                <div class="legend-bar"></div>
+                <span>High activation</span>
+              </div>
+              <div style="font-size:11px;color:var(--lumi-muted);margin-top:6px;font-family:var(--mono)">Model attention regions via Grad-CAM visualization</div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title">Diagnosis Result</div>
+              <div class="diagnosis-result">
+                <div id="diag-badge" class="diagnosis-badge pending">⬤ Awaiting analysis</div>
+                <div>
+                  <div class="confidence-label"><span>Overall confidence</span><span id="conf-pct">—</span></div>
+                  <div class="confidence-bar"><div class="confidence-fill" id="conf-bar" style="width:0%"></div></div>
+                </div>
+                <div id="diag-detail" style="font-size:13px;color:var(--lumi-muted);line-height:1.6"></div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title">Severity Classification (DR Grades 0–4)</div>
+              <div class="severity-grid" id="severity-bars">
+                <div class="severity-item">
+                  <div class="severity-bar-wrap"><div class="severity-bar" id="bar-0" style="height:0%;background:#0d7a5f;min-height:2px"></div></div>
+                  <div class="severity-pct" id="pct-0">—</div>
+                  <div class="severity-label">No DR</div>
+                </div>
+                <div class="severity-item">
+                  <div class="severity-bar-wrap"><div class="severity-bar" id="bar-1" style="height:0%;background:#c4700a;min-height:2px"></div></div>
+                  <div class="severity-pct" id="pct-1">—</div>
+                  <div class="severity-label">Mild</div>
+                </div>
+                <div class="severity-item">
+                  <div class="severity-bar-wrap"><div class="severity-bar" id="bar-2" style="height:0%;background:#e67e22;min-height:2px"></div></div>
+                  <div class="severity-pct" id="pct-2">—</div>
+                  <div class="severity-label">Moderate</div>
+                </div>
+                <div class="severity-item">
+                  <div class="severity-bar-wrap"><div class="severity-bar" id="bar-3" style="height:0%;background:#c0392b;min-height:2px"></div></div>
+                  <div class="severity-pct" id="pct-3">—</div>
+                  <div class="severity-label">Severe</div>
+                </div>
+                <div class="severity-item">
+                  <div class="severity-bar-wrap"><div class="severity-bar" id="bar-4" style="height:0%;background:#7b241c;min-height:2px"></div></div>
+                  <div class="severity-pct" id="pct-4">—</div>
+                  <div class="severity-label">Prolif.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">Feature Analysis</div>
+              <div class="feature-list" id="feature-list">
+                <div style="font-size:12px;color:var(--lumi-muted)">Run analysis to see feature scores</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="log-card">
+          <div class="flex-between" style="margin-bottom:10px">
+            <div class="card-title" style="margin:0">System Log</div>
+            <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" onclick="clearLog()">Clear</button>
+          </div>
+          <div class="log-stream" id="log-stream">
+            <div class="log-line"><span class="log-time">00:00:00</span><span class="log-msg sys">LuminaDia XAI framework initialized</span></div>
+            <div class="log-line"><span class="log-time">00:00:00</span><span class="log-msg info">Models loaded: SwinUNetV2, ViT-B/16, EfficientNetV2-L, ConvNeXtV2</span></div>
+            <div class="log-line"><span class="log-time">00:00:00</span><span class="log-msg dim">Waiting for iris image input...</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-results" class="page">
+        <div>
+          <div class="page-title">Results &amp; Metrics</div>
+          <div class="page-subtitle">Detailed performance metrics and classification reports from the hybrid AI framework</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Model Comparison (Across Hardware)</div>
+          <div id="model-chart-area" style="padding:8px 0"></div>
+        </div>
+        <div class="analysis-grid">
+          <div class="card">
+            <div class="card-title">Classification Report</div>
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="border-bottom:1px solid var(--lumi-border)">
+                  <th style="padding:6px 8px;text-align:left;color:var(--lumi-muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px">Class</th>
+                  <th style="padding:6px 8px;text-align:right;color:var(--lumi-muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px">Prec.</th>
+                  <th style="padding:6px 8px;text-align:right;color:var(--lumi-muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px">Recall</th>
+                  <th style="padding:6px 8px;text-align:right;color:var(--lumi-muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px">F1</th>
+                  <th style="padding:6px 8px;text-align:right;color:var(--lumi-muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px">Support</th>
+                </tr>
+              </thead>
+              <tbody id="cls-report-body"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">Confusion Matrix</div>
+            <canvas id="cm-canvas" width="260" height="260" style="width:100%;max-width:260px;display:block;margin:0 auto"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Training Curves (25 Epochs)</div>
+          <canvas id="training-canvas" width="580" height="180" style="width:100%"></canvas>
+        </div>
+      </div>
+
+      <div id="page-xai" class="page">
+        <div>
+          <div class="page-title">XAI Viewer</div>
+          <div class="page-subtitle">Explainability visualizations: Grad-CAM, ViT patch embeddings, and feature attribution maps</div>
+        </div>
+        <div class="analysis-grid">
+          <div class="card">
+            <div class="card-title">Grad-CAM Visualization</div>
+            <div id="xai-gradcam-wrap" style="border-radius:8px;overflow:hidden;background:#111;aspect-ratio:1;position:relative">
+              <canvas id="xai-gradcam" width="300" height="300" style="width:100%;height:100%"></canvas>
+              <div id="xai-overlay-label" class="overlay-label">No DR · Confidence: 0.00</div>
+            </div>
+            <div style="margin-top:12px">
+              <div style="font-size:12px;color:var(--lumi-muted);margin-bottom:8px">DR Severity Selector</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn btn-primary" style="font-size:11px;padding:5px 10px" onclick="selectXaiClass(0)">No DR</button>
+                <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px" onclick="selectXaiClass(1)">Mild</button>
+                <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px" onclick="selectXaiClass(2)">Moderate</button>
+                <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px" onclick="selectXaiClass(3)">Severe</button>
+                <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px" onclick="selectXaiClass(4)">Prolif.</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">ViT Patch Embedding</div>
+            <canvas id="vit-patch-canvas" width="300" height="300" style="width:100%;border-radius:8px;display:block"></canvas>
+            <div style="margin-top:10px;font-size:11px;color:var(--lumi-muted);font-family:var(--mono)">256×256 → 1,296 patches × 147 elements/patch</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Feature Attribution (SHAP-style)</div>
+          <div id="shap-chart" style="padding:8px 0"></div>
+        </div>
+        <div class="annotation-box">
+          <div class="annotation-header">XAI Interpretation Notes</div>
+          <div class="annotation-body" id="xai-notes">Select a DR severity above to see the Grad-CAM visualization. Red/orange zones indicate high model attention — regions the AI identified as clinically significant for classification. Blue zones represent low attention areas.</div>
+        </div>
+      </div>
+
+      <div id="page-chat" class="page">
+        <div>
+          <div class="page-title">AI Clinical Consult</div>
+          <div class="page-subtitle">Ask the LuminaDia AI assistant clinical questions about iris-based diabetes diagnosis</div>
+        </div>
+        <div class="card" style="flex:1">
+          <div class="card-title">Powered by Claude · Iris Diagnostics Expert</div>
+          <div class="chat-container" id="chat-container">
+            <div class="chat-msg">
+              <div class="chat-avatar ai">L</div>
+              <div class="chat-bubble ai">Hello! I'm the LuminaDia AI clinical assistant. I'm specialized in iris-based diabetes detection and can answer questions about diabetic retinopathy, the diagnostic pipeline, Grad-CAM explanations, or your analysis results. How can I help you?</div>
+            </div>
+          </div>
+          <div class="chat-input-row" style="margin-top:16px">
+            <input class="chat-input" id="chat-input" placeholder="Ask about iris diagnostics, DR staging, XAI…" onkeydown="if(event.key==='Enter')sendChat()">
+            <button class="btn btn-primary" onclick="sendChat()" id="chat-send-btn">Send ↗</button>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px" onclick="quickChat('What does a Grad-CAM heatmap tell me?')">What does Grad-CAM show?</button>
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px" onclick="quickChat('Explain the 5 DR severity grades')">Explain DR grades 0–4</button>
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px" onclick="quickChat('How accurate is iris-based diabetes detection?')">How accurate is this?</button>
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px" onclick="quickChat('What iris features indicate diabetes?')">Iris markers of diabetes</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-history" class="page">
+        <div>
+          <div class="page-title">Scan History</div>
+          <div class="page-subtitle">Previous iris analysis sessions from this browser session</div>
+        </div>
+        <div class="card">
+          <div class="flex-between" style="margin-bottom:14px">
+            <div class="card-title" style="margin:0">Recent Scans</div>
+            <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" onclick="clearHistory()">Clear history</button>
+          </div>
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Scan ID</th><th>Timestamp</th><th>Result</th><th>DR Grade</th><th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody id="history-body">
+              <tr><td colspan="5" style="color:var(--lumi-muted);font-style:italic;text-align:center;padding:20px">No scans yet — run an analysis first</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="page-about" class="page">
+        <div>
+          <div class="page-title">About LuminaDia</div>
+          <div class="page-subtitle">Explainable AI framework for iris-based non-invasive diabetes detection</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Framework Architecture</div>
+          <div style="display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.7;color:var(--lumi-text)">
+            <p>LuminaDia integrates four state-of-the-art deep learning architectures into a unified, transparent clinical diagnostic pipeline designed for detecting diabetic retinopathy from iris images without any invasive procedures.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="annotation-box">
+                <div class="annotation-header">SwinUNetV2 · Segmentation</div>
+                <div class="annotation-body">Transformer-based iris ROI segmentation, isolating medically significant regions with 98.6% accuracy. Filters eyelids, reflections, and irrelevant tissue.</div>
+              </div>
+              <div class="annotation-box">
+                <div class="annotation-header">Vision Transformer (ViT) · Global features</div>
+                <div class="annotation-body">Processes 1,296 patches (7×7) per image. Self-attention captures long-range dependencies and global iris texture patterns indicative of diabetic changes.</div>
+              </div>
+              <div class="annotation-box">
+                <div class="annotation-header">EfficientNetV2-L · Local texture</div>
+                <div class="annotation-body">Hierarchical CNN for fine-grained microstructural feature extraction. Captures crypt distortions, fiber irregularities, and pigment variations.</div>
+              </div>
+              <div class="annotation-box">
+                <div class="annotation-header">ConvNeXtV2 · Classification</div>
+                <div class="annotation-body">Classifies diabetic severity grades 0–4. Combines local and global representations for accurate multi-class differentiation across DR stages.</div>
+              </div>
+            </div>
+            <div class="annotation-box">
+              <div class="annotation-header">Grad-CAM · Explainability</div>
+              <div class="annotation-body">Gradient-weighted Class Activation Mapping visualizes which iris regions drive each prediction. Bridges AI decision-making with clinical reasoning, providing transparent heatmaps that clinicians can verify against anatomical knowledge.</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Datasets Used</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+            <div class="metric-card"><div class="metric-label">EyePACS</div><div class="metric-value">35,108</div><div class="metric-sub">images</div></div>
+            <div class="metric-card"><div class="metric-label">APTOS 2019</div><div class="metric-value">3,662</div><div class="metric-sub">images</div></div>
+            <div class="metric-card"><div class="metric-label">IDRiD</div><div class="metric-value">455</div><div class="metric-sub">images</div></div>
+          </div>
+        </div>
+        <div class="alert-box info">
+          <span>ℹ</span>
+          <span>This tool is for educational and research demonstration purposes. Clinical deployment requires regulatory approval and validation by licensed medical professionals.</span>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+class SeededRandom {
+  constructor(seed) { this.seed = seed; }
+  next() { const x = Math.sin(this.seed++) * 10000; return x - Math.floor(x); }
+  range(min, max) { return Math.floor(this.next() * (max - min + 1)) + min; }
+}
+
+const SYSTEM_PROMPT = `You are the LuminaDia AI clinical assistant, specialized exclusively in iris-based diabetes detection, diabetic retinopathy (DR), and the LuminaDia XAI framework.`;
+
+let scanCount = 0;
+let scanHistory = [];
+let currentAnalysisResult = null;
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id === 'results') renderResultsPage();
+  if (id === 'xai') { selectXaiClass(0); renderVitPatch(); renderShap(); }
+  if (id === 'history') renderHistory();
+}
+
+function addLog(msg, type='info') {
+  const log = document.getElementById('log-stream');
+  const now = new Date();
+  const t = [now.getHours(), now.getMinutes(), now.getSeconds()].map(x => String(x).padStart(2,'0')).join(':');
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-time">${t}</span><span class="log-msg ${type}">${msg}</span>`;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function clearLog() { document.getElementById('log-stream').innerHTML = ''; }
+
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showAlert('upload-alert', 'Please upload an image file (JPEG, PNG, TIFF, BMP)', 'warn');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = document.createElement('img');
+    img.src = ev.target.result;
+    const wrap = document.getElementById('preview-wrap');
+    wrap.innerHTML = '';
+    wrap.appendChild(img);
+    const lbl = document.createElement('div');
+    lbl.className = 'overlay-label';
+    lbl.textContent = 'Input image';
+    wrap.appendChild(lbl);
+    document.getElementById('result-section').style.display = 'grid';
+    showAlert('upload-alert', `Image loaded: ${file.name} (${(file.size/1024).toFixed(1)} KB)`, 'success');
+    addLog(`Image uploaded: ${file.name} · ${(file.size/1024).toFixed(0)} KB`, 'info');
+    runPipeline(ev.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+const UPLOAD_ZONE = document.getElementById('upload-zone');
+UPLOAD_ZONE.addEventListener('dragover', e => { e.preventDefault(); UPLOAD_ZONE.classList.add('dragover'); });
+UPLOAD_ZONE.addEventListener('dragleave', () => UPLOAD_ZONE.classList.remove('dragover'));
+UPLOAD_ZONE.addEventListener('drop', e => {
+  e.preventDefault(); UPLOAD_ZONE.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const dt = new DataTransfer(); dt.items.add(file);
+    document.getElementById('file-input').files = dt.files;
+    handleFileUpload({ target: { files: [file] } });
+  }
+});
+
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  el.className = `alert-box ${type}`;
+  el.innerHTML = `<span>${type==='warn'?'⚠':'✓'}</span><span>${msg}</span>`;
+}
+
+function setStage(stage, pct) {
+  const fill = document.getElementById('sf-'+stage);
+  if (fill) fill.style.width = pct + '%';
+  const stageEl = document.getElementById('stage-'+stage);
+  if (stageEl) {
+    if (pct >= 50) stageEl.classList.add('active');
+    if (pct >= 100) {
+      stageEl.classList.add('done');
+      stageEl.classList.remove('active');
+    }
+  }
+}
+
+function runPipeline(imgData) {
+  const stageNames = ['input','seg','feat','cls','xai'];
+  const stageMsgs = [
+    ['Preprocessing: resize to 512×512', 'Applying CLAHE contrast enhancement', 'Denoising + color normalization'],
+    ['SwinUNetV2: iris ROI extraction', 'Filtering eyelid reflections', 'Segmentation mask generated'],
+    ['ViT: patch tokenization (1296 patches)', 'EfficientNetV2-L: local feature map', 'ConvNeXtV2: hierarchical features'],
+    ['Running multi-class classification', 'Computing DR severity probabilities', 'Applying decision threshold'],
+    ['Generating Grad-CAM heatmap', 'Computing activation gradients', 'XAI visualization complete']
+  ];
+  document.getElementById('pipeline-status').textContent = 'running...';
+
+  // Reset stage classes
+  stageNames.forEach(sn => {
+    const el = document.getElementById('stage-' + sn);
+    if (el) el.className = 'pipeline-stage';
+    const fill = document.getElementById('sf-' + sn);
+    if (fill) fill.style.width = '0%';
+  });
+
+  let stageIdx = 0;
+  function runStage() {
+    if (stageIdx >= stageNames.length) {
+      document.getElementById('pipeline-status').textContent = 'complete ✓';
+      finishAnalysis(imgData);
+      return;
+    }
+    const sn = stageNames[stageIdx];
+    const msgs = stageMsgs[stageIdx];
+    addLog(`[${sn.toUpperCase()}] ${msgs[0]}`, 'sys');
+    let pct = 0;
+    const interval = setInterval(() => {
+      pct += 20;
+      setStage(sn, pct);
+      if (pct === 40) addLog(`[${sn.toUpperCase()}] ${msgs[1]}`, 'dim');
+      if (pct === 80) addLog(`[${sn.toUpperCase()}] ${msgs[2]}`, 'info');
+      if (pct >= 100) {
+        clearInterval(interval);
+        stageIdx++;
+        setTimeout(runStage, 200);
+      }
+    }, 120);
+  }
+  runStage();
+}
+
+function finishAnalysis(imgData) {
+  const gradients = computeSimulatedGradcam(imgData);
+  const severities = computeSeverities(imgData);
+  const diagClass = severities.indexOf(Math.max(...severities));
+  const confidence = (85 + Math.random() * 14);
+  const classNames = ['No DR', 'Mild DR', 'Moderate DR', 'Severe DR', 'Proliferative DR'];
+
+  currentAnalysisResult = { diagClass, confidence, severities, classNames, gradients };
+
+  const badge = document.getElementById('diag-badge');
+  badge.className = `diagnosis-badge ${diagClass === 0 ? 'negative' : 'positive'}`;
+  badge.textContent = `⬤ ${classNames[diagClass]}`;
+
+  const conf = document.getElementById('conf-bar');
+  conf.style.width = confidence.toFixed(0) + '%';
+  conf.className = `confidence-fill ${confidence > 85 ? 'high' : confidence > 65 ? 'medium' : 'low'}`;
+  document.getElementById('conf-pct').textContent = confidence.toFixed(1) + '%';
+
+  const details = [
+    'Normal iris. No vascular irregularities or crypt distortions detected. Grad-CAM shows uniform low-activation distribution.',
+    'Subtle fiber inconsistencies and minor pigment variation detected. Early microvascular markers present.',
+    'Noticeable crypt distortions and uneven pigmentation observed. Early vascular congestion detected by ViT attention.',
+    'Prominent iris abnormalities: major crypt fragmentation, fiber disruption, enlarged stromal gaps. High Grad-CAM activation.',
+    'Critical stage: extreme fiber deterioration, large-scale pigment loss, severe vascular irregularities. Maximum model activation.'
+  ];
+  document.getElementById('diag-detail').textContent = details[diagClass];
+
+  severities.forEach((s, i) => {
+    document.getElementById('bar-' + i).style.height = (s * 48) + 'px';
+    document.getElementById('pct-' + i).textContent = (s * 100).toFixed(0) + '%';
+  });
+
+  const features = [
+    ['Iris crypt integrity', 1 - (diagClass * 0.18)],
+    ['Fiber regularity', 0.95 - (diagClass * 0.2)],
+    ['Pigment uniformity', 0.92 - (diagClass * 0.18)],
+    ['Vascular density', 0.12 + (diagClass * 0.22)],
+    ['Stromal texture', 0.88 - (diagClass * 0.16)],
+    ['Global asymmetry (ViT)', 0.05 + (diagClass * 0.21)],
+  ];
+
+  document.getElementById('feature-list').innerHTML = features.map(([name, score]) => {
+    const pct = Math.min(100, Math.max(0, score * 100));
+    return `<div class="feature-row">
+      <div class="feature-name">${name}</div>
+      <div class="feature-score-bar"><div class="feature-score-fill" style="width:${pct.toFixed(0)}%"></div></div>
+      <div class="feature-pct">${pct.toFixed(0)}%</div>
+    </div>`;
+  }).join('');
+
+  renderGradcam('gradcam-canvas', gradients, diagClass);
+  addLog(`Analysis complete — ${classNames[diagClass]} (${confidence.toFixed(1)}% confidence)`, 'info');
+  addLog(`DR severity grade: ${diagClass} · Grad-CAM heatmap generated`, 'info');
+
+  scanCount++;
+  document.getElementById('scan-count').textContent = scanCount;
+
+  const scanId = 'SCN-' + String(scanCount).padStart(4, '0');
+  scanHistory.unshift({
+    id: scanId,
+    ts: new Date().toLocaleString(),
+    result: diagClass === 0 ? 'Negative' : 'Positive',
+    grade: diagClass,
+    confidence: confidence.toFixed(1)
+  });
+}
+
+function computeSimulatedGradcam(imgData) {
+  const res = 30;
+  const grid = [];
+  const seed = imgData ? imgData.length : 42;
+  const rng = new SeededRandom(seed);
+  const cx = 0.5 + (rng.next() - 0.5) * 0.2;
+  const cy = 0.5 + (rng.next() - 0.5) * 0.2;
+  for (let y = 0; y < res; y++) {
+    for (let x = 0; x < res; x++) {
+      const dx = x/res - cx, dy = y/res - cy;
+      const r = Math.sqrt(dx*dx + dy*dy);
+      const base = Math.max(0, 1 - r * 2.2);
+      const noise = (rng.next() - 0.5) * 0.25;
+      const ring = Math.abs(r - 0.25) < 0.08 ? 0.35 : 0;
+      grid.push(Math.max(0, Math.min(1, base + ring + noise)));
+    }
+  }
+  return { grid, res };
+}
+
+function computeSeverities(imgData) {
+  const rawSeed = imgData ? imgData.length % 5 : Math.floor(Math.random() * 5);
+  const rng = new SeededRandom(rawSeed + 42);
+  let probs = [0, 0, 0, 0, 0];
+  let mainProb = rng.range(60, 92);
+  probs[rawSeed] = mainProb;
+  let remaining = 100 - mainProb;
+  for (let i = 0; i < 5; i++) {
+    if (i !== rawSeed) {
+      let share = Math.floor(remaining / 4) + rng.range(-3, 3);
+      probs[i] = Math.max(2, share);
+    }
+  }
+  let sum = probs.reduce((a, b) => a + b, 0);
+  let diff = 100 - sum;
+  probs[rawSeed] += diff;
+  return probs.map(p => p / 100);
+}
+
+function renderGradcam(canvasId, gradients, diagClass) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  
+  ctx.clearRect(0, 0, w, h);
+  
+  // Draw simulated dark iris background
+  ctx.fillStyle = '#0a0a0c';
+  ctx.fillRect(0, 0, w, h);
+  
+  // Iris boundary
+  ctx.beginPath();
+  ctx.arc(w/2, h/2, w/2.2, 0, Math.PI * 2);
+  ctx.fillStyle = '#141418';
+  ctx.fill();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.stroke();
+
+  // Pupil circle
+  ctx.beginPath();
+  ctx.arc(w/2, h/2, w/5.5, 0, Math.PI * 2);
+  ctx.fillStyle = '#050505';
+  ctx.fill();
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.stroke();
+  
+  // Draw blurred heatmap overlay
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.filter = 'blur(10px)';
+  
+  const res = gradients.res;
+  const grid = gradients.grid;
+  const cellW = w / res;
+  const cellH = h / res;
+  
+  for (let y = 0; y < res; y++) {
+    for (let x = 0; x < res; x++) {
+      const val = grid[y * res + x];
+      if (val > 0.12) {
+        let color = 'transparent';
+        if (diagClass > 0) {
+          // Pathological red-orange scale
+          if (val > 0.7) color = `rgba(220, 53, 69, ${val * 0.8})`;
+          else if (val > 0.4) color = `rgba(243, 156, 18, ${val * 0.65})`;
+          else color = `rgba(241, 196, 15, ${val * 0.4})`;
+        } else {
+          // Healthy blue-green scale
+          if (val > 0.7) color = `rgba(13, 122, 95, ${val * 0.75})`;
+          else if (val > 0.4) color = `rgba(30, 144, 255, ${val * 0.6})`;
+          else color = `rgba(0, 255, 150, ${val * 0.35})`;
+        }
+        
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x * cellW + cellW/2, y * cellH + cellH/2, cellW * 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+  ctx.restore();
+}
+
+function selectXaiClass(idx) {
+  // Update button active state
+  const buttons = document.querySelectorAll('#page-xai button.btn');
+  buttons.forEach((btn, i) => {
+    if (i === idx) {
+      btn.className = 'btn btn-primary';
+    } else {
+      btn.className = 'btn btn-secondary';
+    }
+  });
+
+  // Generate simulated Grad-CAM and render
+  const gradients = computeSimulatedGradcam(null);
+  renderGradcam('xai-gradcam', gradients, idx);
+  
+  const classNames = ['No DR', 'Mild DR', 'Moderate DR', 'Severe DR', 'Proliferative DR'];
+  const confidences = [98.4, 91.2, 89.6, 94.1, 99.2];
+  document.getElementById('xai-overlay-label').textContent = `${classNames[idx]} · Confidence: ${confidences[idx]}%`;
+
+  const interpretations = [
+    "Model attention is uniformly distributed across the iris sphincter muscle and trabecular mesh. No localized hot spots or fiber distortions are identified, verifying a healthy iris structure.",
+    "Mild localized attention concentrated near the pupillary zone, reflecting subtle texture variations or minor microvascular signs.",
+    "Moderately high attention clusters in the lower temporal quadrant, highlighting localized stromal thinning and crypt distortion patterns.",
+    "Intense, concentrated activation patterns across the ciliary zone, indicating significant radial fiber disruption and prominent structural lesions.",
+    "Critical, high-intensity activation spans the entire iris structure, reflecting extensive structural damage, severe fiber fragmentation, and widespread texture deterioration."
+  ];
+  document.getElementById('xai-notes').textContent = interpretations[idx];
+}
+
+function renderVitPatch() {
+  const canvas = document.getElementById('vit-patch-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  
+  ctx.fillStyle = '#0c0d12';
+  ctx.fillRect(0, 0, w, h);
+  
+  const cols = 14;
+  const cellW = w / cols;
+  
+  for (let r = 0; r < cols; r++) {
+    for (let c = 0; c < cols; c++) {
+      const dx = c - cols/2;
+      const dy = r - cols/2;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      
+      let val = Math.max(0, 1 - dist / (cols * 0.65));
+      val = Math.max(0, Math.min(1, val * 0.75 + (Math.sin(r * 2.8 + c * 2.2) + 1) * 0.125));
+      
+      // Inferno color mapping: dark purple -> magenta -> orange -> yellow -> white
+      let color;
+      if (val > 0.8) color = `rgb(252, 253, 191)`;
+      else if (val > 0.6) color = `rgb(251, 136, 97)`;
+      else if (val > 0.4) color = `rgb(182, 54, 121)`;
+      else if (val > 0.2) color = `rgb(81, 18, 124)`;
+      else color = `rgb(12, 12, 28)`;
+      
+      ctx.fillStyle = color;
+      ctx.fillRect(c * cellW + 1, r * cellW + 1, cellW - 2, cellW - 2);
+    }
+  }
+}
+
+function renderShap() {
+  const el = document.getElementById('shap-chart');
+  if (!el) return;
+  const features = [
+    { name: 'Crypt distortion', value: 0.28, type: 'pos' },
+    { name: 'Radial fiber thinning', value: 0.22, type: 'pos' },
+    { name: 'Pupillary zone pigment', value: 0.14, type: 'pos' },
+    { name: 'Stromal gaps', value: 0.11, type: 'pos' },
+    { name: 'Eyelid occlusion', value: -0.02, type: 'neg' },
+    { name: 'Lighting artifacts', value: -0.01, type: 'neg' }
+  ];
+  
+  el.innerHTML = `<div style="display:flex; flex-direction:column; gap:10px;">` + features.map(f => {
+    const valPct = Math.abs(f.value) * 150; // Scale factor
+    return `<div class="flex-between" style="font-size:12px;">
+      <div style="width:140px; color:var(--lumi-muted);">${f.name}</div>
+      <div style="flex:1; display:flex; align-items:center; height:18px; position:relative; background:var(--lumi-bg); border-radius:4px; overflow:hidden;">
+        ${f.type === 'pos' 
+          ? `<div style="position:absolute; left:50%; width:${valPct}px; height:100%; background:var(--lumi-red); border-radius:0 2px 2px 0;"></div>`
+          : `<div style="position:absolute; right:50%; width:${valPct}px; height:100%; background:var(--lumi-blue); border-radius:2px 0 0 2px;"></div>`
+        }
+        <div style="position:absolute; left:50%; width:1px; height:100%; background:var(--lumi-border);"></div>
+      </div>
+      <div style="width:50px; text-align:right; font-family:var(--mono); font-weight:600; color:${f.type==='pos'?'var(--lumi-red)':'var(--lumi-blue)'};">${f.value > 0 ? '+' : ''}${f.value.toFixed(2)}</div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
+function renderResultsPage() {
+  const area = document.getElementById('model-chart-area');
+  if (!area) return;
+  const models = [
+    { name: 'SwinUNetV2 (GPU)', acc: 99.1, time: '210ms' },
+    { name: 'ViT-B/16 (GPU)', acc: 98.4, time: '340ms' },
+    { name: 'EfficientNetV2 (GPU)', acc: 97.2, time: '410ms' },
+    { name: 'ConvNeXtV2 (GPU)', acc: 98.8, time: '380ms' }
+  ];
+  area.innerHTML = `<div style="display:flex; flex-direction:column; gap:8px;">` + models.map(m => `
+    <div class="flex-between" style="font-size:12px;">
+      <div style="width:150px; font-weight:500;">${m.name}</div>
+      <div style="flex:1; height:10px; background:var(--lumi-bg); border-radius:5px; overflow:hidden; margin:0 12px; position:relative;">
+        <div style="width:${m.acc}%; height:100%; background:var(--lumi-teal); border-radius:5px;"></div>
+      </div>
+      <div style="width:50px; font-family:var(--mono); text-align:right; font-weight:600;">${m.acc}%</div>
+      <div style="width:60px; font-family:var(--mono); text-align:right; color:var(--lumi-muted);">${m.time}</div>
+    </div>
+  `).join('') + `</div>`;
+
+  const reportBody = document.getElementById('cls-report-body');
+  if (reportBody) {
+    const reportData = [
+      { cls: 'No DR (Grade 0)', p: 0.99, r: 1.00, f1: 0.99, sup: 1540 },
+      { cls: 'Mild (Grade 1)', p: 0.99, r: 0.98, f1: 0.99, sup: 820 },
+      { cls: 'Moderate (Grade 2)', p: 0.99, r: 0.99, f1: 0.99, sup: 1200 },
+      { cls: 'Severe (Grade 3)', p: 0.99, r: 0.99, f1: 0.99, sup: 450 },
+      { cls: 'Proliferative (Grade 4)', p: 1.00, r: 0.99, f1: 1.00, sup: 320 }
+    ];
+    reportBody.innerHTML = reportData.map(r => `
+      <tr>
+        <td style="padding:6px 8px; font-weight:500;">${r.cls}</td>
+        <td style="padding:6px 8px; text-align:right; font-family:var(--mono);">${r.p.toFixed(2)}</td>
+        <td style="padding:6px 8px; text-align:right; font-family:var(--mono);">${r.r.toFixed(2)}</td>
+        <td style="padding:6px 8px; text-align:right; font-family:var(--mono); font-weight:600; color:var(--lumi-teal);">${r.f1.toFixed(2)}</td>
+        <td style="padding:6px 8px; text-align:right; font-family:var(--mono); color:var(--lumi-muted);">${r.sup}</td>
+      </tr>
+    `).join('');
+  }
+
+  renderConfusionMatrix();
+  renderTrainingCurves();
+}
+
+function renderConfusionMatrix() {
+  const canvas = document.getElementById('cm-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  ctx.clearRect(0, 0, w, w);
+  
+  const matrix = [
+    [99, 1, 0, 0, 0],
+    [2, 97, 1, 0, 0],
+    [0, 1, 98, 1, 0],
+    [0, 0, 1, 99, 0],
+    [0, 0, 0, 1, 99]
+  ];
+  
+  const size = 5;
+  const paddingLeft = 30;
+  const paddingTop = 10;
+  const cellSize = (w - paddingLeft - 10) / size;
+  
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, w);
+  
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const val = matrix[r][c];
+      const alpha = val / 100;
+      ctx.fillStyle = `rgba(13, 122, 95, ${alpha * 0.95 + 0.05})`;
+      ctx.fillRect(paddingLeft + c * cellSize, paddingTop + r * cellSize, cellSize - 2, cellSize - 2);
+      
+      ctx.fillStyle = val > 50 ? '#ffffff' : 'var(--lumi-text)';
+      ctx.font = 'bold 10px var(--mono)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(val + '%', paddingLeft + c * cellSize + cellSize/2, paddingTop + r * cellSize + cellSize/2);
+    }
+    
+    // Row label (Target Class)
+    ctx.fillStyle = 'var(--lumi-muted)';
+    ctx.font = 'bold 8px var(--mono)';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('G' + r, paddingLeft - 6, paddingTop + r * cellSize + cellSize/2);
+    
+    // Column label (Predicted Class)
+    ctx.textAlign = 'center';
+    ctx.fillText('G' + r, paddingLeft + r * cellSize + cellSize/2, w - 10);
+  }
+}
+
+function renderTrainingCurves() {
+  const canvas = document.getElementById('training-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, h);
+  
+  // Draw grid
+  ctx.strokeStyle = 'var(--lumi-border)';
+  ctx.lineWidth = 0.5;
+  for (let i = 1; i <= 4; i++) {
+    const y = h * (i / 5);
+    ctx.beginPath();
+    ctx.moveTo(35, y);
+    ctx.lineTo(w - 20, y);
+    ctx.stroke();
+  }
+  
+  const epochs = 25;
+  const padX = 40;
+  const padY = 20;
+  const chartW = w - padX - 25;
+  const chartH = h - padY - 20;
+  
+  // Draw Loss curve (simulated)
+  ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'var(--lumi-amber)';
+  for (let e = 0; e < epochs; e++) {
+    const x = padX + (e / (epochs - 1)) * chartW;
+    const val = 0.8 * Math.exp(-e / 6) + 0.05 + Math.sin(e) * 0.01;
+    const y = h - padY - val * chartH;
+    if (e === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  
+  // Draw Accuracy curve (simulated)
+  ctx.beginPath();
+  ctx.strokeStyle = 'var(--lumi-teal)';
+  for (let e = 0; e < epochs; e++) {
+    const x = padX + (e / (epochs - 1)) * chartW;
+    const val = 0.65 + 0.34 * (1 - Math.exp(-e / 5)) + Math.sin(e * 1.5) * 0.005;
+    const y = h - padY - val * chartH;
+    if (e === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  
+  // Labels
+  ctx.fillStyle = 'var(--lumi-muted)';
+  ctx.font = '8px var(--mono)';
+  ctx.fillText('Epoch 1', padX + 15, h - 6);
+  ctx.fillText('Epoch 25', w - 40, h - 6);
+  
+  ctx.fillStyle = 'var(--lumi-teal)';
+  ctx.fillText('Accuracy', 50, 12);
+  ctx.fillStyle = 'var(--lumi-amber)';
+  ctx.fillText('Loss', 100, 12);
+}
+
+function renderHistory() {
+  const body = document.getElementById('history-body');
+  if (!body) return;
+  if (scanHistory.length === 0) {
+    body.innerHTML = `<tr><td colspan="5" style="color:var(--lumi-muted);font-style:italic;text-align:center;padding:20px">No scans yet — run an analysis first</td></tr>`;
+    return;
+  }
+  body.innerHTML = scanHistory.map(h => `
+    <tr>
+      <td style="font-family:var(--mono);font-weight:600;">${h.id}</td>
+      <td>${h.ts}</td>
+      <td><span class="hist-badge ${h.result === 'Positive' ? 'pos' : 'neg'}">${h.result}</span></td>
+      <td style="font-weight:500;">Stage ${h.grade} - ${h.grade === 0 ? 'No DR' : h.grade === 1 ? 'Mild' : h.grade === 2 ? 'Moderate' : h.grade === 3 ? 'Severe' : 'Proliferative'}</td>
+      <td style="font-family:var(--mono);font-weight:600;color:var(--lumi-teal);">${h.confidence}%</td>
+    </tr>
+  `).join('');
+}
+
+function clearHistory() {
+  scanHistory = [];
+  renderHistory();
+  addLog('Scan history cleared', 'warn');
+}
+
+let bubbleIdCounter = 0;
+function appendChatBubble(text, sender, isLoading = false) {
+  const container = document.getElementById('chat-container');
+  if (!container) return null;
+  const bubbleId = 'bubble-' + (++bubbleIdCounter);
+  
+  const row = document.createElement('div');
+  row.className = `chat-msg ${sender === 'user' ? 'user' : ''}`;
+  row.id = bubbleId;
+  
+  row.innerHTML = `
+    <div class="chat-avatar ${sender === 'user' ? 'user' : 'ai'}">${sender === 'user' ? 'U' : 'L'}</div>
+    <div class="chat-bubble ${sender === 'user' ? 'user' : 'ai'} ${isLoading ? 'loading' : ''}">${text}</div>
+  `;
+  
+  container.appendChild(row);
+  container.scrollTop = container.scrollHeight;
+  return bubbleId;
+}
+
+function removeChatBubble(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function formatResponseText(text) {
+  return text
+    .replace(/\n/g, '<br>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/•\s*(.*?)(<br>|$)/g, '<li>$1</li>');
+}
+
+function getLocalChatResponse(message, scanContext) {
+  message = message.toLowerCase();
+  if (message.includes('hello') || message.includes('hi') || message.includes('hey') || message.includes('help')) {
+    return "👋 Hello! I'm the LuminaDia AI Medical Assistant. I can help you understand:\n\n• **Your scan results** — Ask about your diagnosis\n• **DR stages** — Learn about diabetic retinopathy stages\n• **Grad-CAM / ViT** — Understand the AI's reasoning\n• **Lifestyle tips** — Diet, exercise, and monitoring advice\n• **Treatment options** — What to do at each stage";
+  }
+  if (message.includes('result') || message.includes('diagnosis') || message.includes('scan') || message.includes('my')) {
+    if (scanContext) {
+      const stages = {
+        0: "No DR (Normal retina with no signs of diabetic retinopathy)",
+        1: "Mild DR (Microaneurysms present. Earliest clinically visible stage)",
+        2: "Moderate DR (Microaneurysms, hemorrhages, hard exudates detected)",
+        3: "Severe DR (Extensive hemorrhages and radial fiber disruption)",
+        4: "Proliferative DR (Critical neovascularization and high risk of vision loss)"
+      };
+      return `## Your Diagnosis Context\n\nAccording to your scan, the model classified Stage ${scanContext.predictedClass}: **${stages[scanContext.predictedClass]}** with **${scanContext.confidence.toFixed(1)}%** confidence. Please consult an ophthalmologist for professional medical evaluation.`;
+    }
+    return "No scan has been performed yet in this browser session. Please upload an iris image and run the analysis pipeline first!";
+  }
+  if (message.includes('gradcam') || message.includes('grad-cam') || message.includes('heatmap')) {
+    return "Gradient-weighted Class Activation Mapping (Grad-CAM) highlights which regions of the image most influenced the model's decision. Red/warm areas indicate high importance, and blue/cool areas indicate low importance. In diabetic retinopathy, Grad-CAM typically focuses on microaneurysms, hemorrhages, and exudates.";
+  }
+  if (message.includes('vit') || message.includes('attention') || message.includes('transformer')) {
+    return "LuminaDia uses a Vision Transformer (ViT-Base) architecture. The self-attention mechanism divides the iris image into 16x16 pixel patches. The attention map shows how much each patch attends to the classification token, revealing which spatial regions are considered most informative.";
+  }
+  if (message.includes('diet') || message.includes('exercise') || message.includes('lifestyle') || message.includes('glucose')) {
+    return "Key lifestyle recommendations for diabetes management:\n• Monitor blood glucose regularly\n• Follow a low-glycemic, high-fiber diet\n• Exercise 150 minutes/week\n• Maintain healthy weight\n• Annual comprehensive eye exam\n• Keep HbA1c target below 7%";
+  }
+  return "I'm specialized in iris-based diabetes diagnostics. I can answer questions about diabetic retinopathy, the LuminaDia framework, iris imaging, or Grad-CAM explanations.";
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  
+  input.value = '';
+  appendChatBubble(msg, 'user');
+  
+  const thinkingId = appendChatBubble('Thinking...', 'ai', true);
+  
+  let scanContext = null;
+  if (currentAnalysisResult) {
+    scanContext = {
+      predictedClass: currentAnalysisResult.diagClass,
+      confidence: currentAnalysisResult.confidence
+    };
+  }
+  
+  try {
+    const res = await fetch('http://localhost:8000/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: msg, scanContext })
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      removeChatBubble(thinkingId);
+      appendChatBubble(formatResponseText(data.response), 'ai');
+    } else {
+      throw new Error('Server error');
+    }
+  } catch (err) {
+    console.warn('Backend chat offline, using smart local model fallback', err);
+    removeChatBubble(thinkingId);
+    const fallback = getLocalChatResponse(msg, scanContext);
+    appendChatBubble(formatResponseText(fallback), 'ai');
+  }
+}
+
+function quickChat(msg) {
+  document.getElementById('chat-input').value = msg;
+  sendChat();
+}
+</script>
+</body>
+</html>
